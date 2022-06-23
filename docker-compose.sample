@@ -1,0 +1,24 @@
+version: "3.1"
+
+services:
+  dbmysql:
+    image: 
+    command: 
+    restart: 
+    container_name: 
+    volumes:
+        - 
+    ports:
+        - 
+    environment:
+        MYSQL_ROOT_PASSWORD: 
+        MYSQL_DATABASE: 
+  redis:
+    image: redis
+    container_name: cache
+    ports:
+      - 
+    expose:
+      - 
+volumes:
+  db_data: {}
