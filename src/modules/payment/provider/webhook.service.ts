@@ -1,49 +1,78 @@
 /* eslint-disable linebreak-style */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable no-case-declarations */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-restricted-syntax */
+/* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable guard-for-in */
-/* eslint-disable no-console */
 /* eslint-disable sonarjs/max-switch-cases */
+/* eslint-disable no-console */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentEntity } from 'src/entity/payment/payment.entity';
-import { StripeService } from 'src/modules/common';
-import { NormalResponse } from 'src/modules/common/response.interface';
+import { EventEntity } from 'src/entity/webhook/event.entity';
+import { RequsetEntity } from 'src/entity/webhook/request.entity';
+import { UtilService } from 'src/modules/common';
+import Stripe from 'stripe';
 import { Repository } from 'typeorm';
 
-import { UtilService } from '../../common/providers/util.service';
-
 @Injectable()
-export class PaymentService {
+export class WebhookService {
   constructor(
+    @InjectRepository(EventEntity)
+    private eventRepository: Repository<EventEntity>,
+    @InjectRepository(RequsetEntity)
+    private requestRepository: Repository<RequsetEntity>,
     @InjectRepository(PaymentEntity) private paymentRepository: Repository<PaymentEntity>,
-    private stripeService: StripeService,
     private util: UtilService,
-  ) {}
+  ) { }
 
-  public async createPaymentIntent(amount: number):Promise<NormalResponse> {
-    const data = await this.stripeService.createPaymentIntent(amount);
-    await this.savePayment(data);
-    return this.util.buildSuccessResponse(data);
+  async saveStripeEvent(event: Stripe.Event) {
+    const eventsave = new EventEntity();
+    eventsave.id = event.id;
+    eventsave.type = event.type;
+    eventsave.created = event.created;
+    const obj = event.data.object as any;
+    let payment;
+    for (const key in obj) {
+      if (key === 'object' && `${obj[key]}` === 'payment_intent') { payment = await this.savePayment(obj); break; }
+      if (key === 'object' && `${obj[key]}` !== 'payment_intent') { console.log(event.type); return; }
+    }
+    eventsave.pid = payment?.id;
+    eventsave.livemode = event.livemode;
+    eventsave.pending_webhooks = event.pending_webhooks;
+    if (event.request) {
+      await this.saveRequest(event.request);
+      eventsave.rid = event.request.id;
+    }
+    await this.eventRepository.save(eventsave);
+    return true;
   }
 
-  public async confirmPaymentIntent(paymentIntentId: string, paymentMethod: string): Promise<NormalResponse> {
-    return this.util.buildSuccessResponse(await this.stripeService.confirmPaymentIntent(paymentIntentId, paymentMethod));
+  async saveRequest(request: Stripe.Event.Request) {
+    const findrequest = await this.requestRepository.findOne({ where: { id: request.id || '' } });
+    if (findrequest) { return; }
+    const requestsave = new RequsetEntity();
+    requestsave.id = request.id;
+    requestsave.idempotency_key = request.idempotency_key;
+    return this.requestRepository.save(requestsave);
   }
 
-  public async cancelPaymentIntent(paymentIntentId: string): Promise<NormalResponse> {
-    return this.util.buildSuccessResponse(await this.stripeService.cancelPaymentIntent(paymentIntentId));
-  }
-
-  private async savePayment(obj:any) {
+  private async savePayment(obj:any):Promise<PaymentEntity> {
     const payment = new PaymentEntity();
-
     for (const key in obj) {
       switch (key) {
         case 'id':
+          const paymentfound = await this.paymentRepository.findOne({ where: { id: `${obj[key]}` } });
+          if (paymentfound) return paymentfound;
           payment.id = `${obj[key]}`;
           break;
         case 'object':
@@ -155,5 +184,11 @@ export class PaymentService {
       }
     }
     await this.paymentRepository.save(payment);
+    return payment;
+  }
+
+  async processSubscriptionUpdate(event: Stripe.Event):Promise<any> {
+    await this.saveStripeEvent(event);
+    return this.util.buildSuccessResponse(null);
   }
 }

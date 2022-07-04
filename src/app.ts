@@ -9,6 +9,7 @@ import winston from 'winston';
 import 'reflect-metadata';
 import { middleware } from './app.middleware';
 import { AppModule } from './app.module';
+import rawBodyMiddleware from './modules/payment/dto/rawBody.middleware';
 
 // trigger build
 
@@ -47,7 +48,7 @@ async function bootstrap(): Promise<void> {
   if (isProduction) {
     app.enable('trust proxy');
   }
-
+  app.use(rawBodyMiddleware());
   // Express Middleware
   middleware(app);
   await app.listen(process.env.PORT || 3001);

@@ -1,3 +1,8 @@
+/* eslint-disable no-buffer-constructor */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -9,6 +14,15 @@ export class StripeService {
   constructor() {
     this.stripeKey = process.env['STRIPE_KEY'] || '';
     this.stripe = new Stripe(this.stripeKey, { apiVersion: '2020-08-27' });
+  }
+
+  public async constructEventFromPayload(signature: string, payload: Buffer) {
+    const webhookSecret = process.env['STRIPE_WEBHOOK_SECRET'] || '';
+    return this.stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      webhookSecret,
+    );
   }
 
   public async createPaymentIntent(amount: number): Promise<any> {

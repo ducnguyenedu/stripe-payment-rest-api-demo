@@ -4,19 +4,19 @@ export class PaymentEntity {
   @PrimaryColumn({ type: 'varchar', length: 36, name: 'id' })
   id!: any;
 
-  @Column('varchar', { nullable: false, length: 36, name: 'object' })
+  @Column('varchar', { nullable: true, length: 36, name: 'object' })
   object!: any;
 
-  @Column('int', { nullable: false, name: 'amount' })
+  @Column('int', { nullable: true, name: 'amount' })
   amount!: any;
 
-  @Column('int', { nullable: false, name: 'amount_capturable' })
+  @Column('int', { nullable: true, name: 'amount_capturable' })
   amount_capturable!: any;
 
   // @OneToMany(() => TipsEntity, amount_details => amount_details.pid)
   // amount_details!: TipsEntity[];
 
-  @Column('int', { nullable: false, name: 'amount_received' })
+  @Column('int', { nullable: true, name: 'amount_received' })
   amount_received!: any;
 
   @Column('varchar', { nullable: true, length: 36, name: 'application' })
@@ -40,16 +40,16 @@ export class PaymentEntity {
   // @Column('varchar', { nullable: true, length: 36, name: 'charges' })
   // charges!: any;
 
-  @Column('varchar', { nullable: false, length: 64, name: 'client_secret' })
+  @Column('varchar', { nullable: true, length: 64, name: 'client_secret' })
   client_secret!: any;
 
-  @Column('varchar', { nullable: false, length: 36, name: 'confirmation_method' })
+  @Column('varchar', { nullable: true, length: 36, name: 'confirmation_method' })
   confirmation_method!: any;
 
-  @Column('int', { nullable: false,  name: 'created' })
+  @Column('int', { nullable: true,  name: 'created' })
   created!: any;
 
-  @Column('varchar', { nullable: false, length: 36, name: 'currency' })
+  @Column('varchar', { nullable: true, length: 36, name: 'currency' })
   currency!: any;
 
   @Column('varchar', { nullable: true, length: 36, name: 'customer' })
@@ -82,7 +82,7 @@ export class PaymentEntity {
   //  @Column('varchar', { nullable: true, length: 36, name: 'payment_method_options' })
   // payment_method_options!: any;
 
-  @Column('varchar', { nullable: false, length: 36, name: 'payment_method_types' })
+  @Column('varchar', { nullable: true, length: 36, name: 'payment_method_types' })
   payment_method_types!: any;
 
   @Column('varchar', { nullable: true, length: 36, name: 'processing' })
@@ -109,7 +109,7 @@ export class PaymentEntity {
   @Column('varchar', { nullable: true, length: 36, name: 'statement_descriptor_suffix' })
   statement_descriptor_suffix!: any;
 
-  @Column('varchar', { nullable: false, length: 36, name: 'status' })
+  @Column('varchar', { nullable: true, length: 36, name: 'status' })
   status!: any;
 
   @Column('varchar', { nullable: true, length: 36, name: 'transfer_data' })

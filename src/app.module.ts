@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import Joi from '@hapi/joi';
 import { BullModule } from '@nestjs/bull';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -17,6 +20,10 @@ import { PaymentModule } from './modules/payment/payment.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
+      validationSchema: Joi.object({
+        STRIPE_WEBHOOK_SECRET: Joi.string(),
+        // ...
+      }),
     }),
     BullModule.forRoot({
       redis: {

@@ -101,3 +101,6 @@ interface ThirdCustomeUser extends CustomeUser {}
 ### Variables Naming
 
 > refer to [Naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet)
+
+stripe listen --forward-to localhost:8349/api/v1/webhook
+stripe listen --forward-to localhost:4242/webhook
